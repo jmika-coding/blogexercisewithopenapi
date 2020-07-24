@@ -1,54 +1,65 @@
-import {Server, IncomingMessage, ServerResponse} from 'http'
-import {FastifyInstance} from 'fastify'
+import {IncomingMessage} from 'http'
+import {FastifyRequest, DefaultQuery, DefaultParams, DefaultHeaders, DefaultBody} from 'fastify'
 import * as t from 'io-ts'
 import { fold } from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/pipeable'
 import { isRight } from 'fp-ts/lib/Either'
 
-import {RequestBodyValuesTypePost, requestBody, RequestBodyValuesTypePut} from "../models/Post"
+import {RequestBodyValuesTypePost, requestBody, RequestBodyValuesTypePut, RequestBodyPost} from "../models/Post"
 import {PostRepository} from "persistances/PostRepository"
 
+import {Handlers} from '../generated/contracts/registerFastify'
+import {ResponseGetPost} from '../generated/types/ResponseGetPost'
+import {Response} from '../generated/types/Response'
+import * as ErrorType from '../generated/types/Error'
+
 // Routes
-export function PostRoutes (server:FastifyInstance<Server, IncomingMessage, ServerResponse>, opts: {post: PostRepository}, next: any) {
-  server.route({method: 'GET', url: '/posts', handler: async (_, response) => response.code(200).header('Content-Type', 'application/json; charset=utf-8').send(await opts.post.getAll()) });
+export function PostRoutes (post: PostRepository): Handlers {
 
-  server.route({method: 'DELETE', url: '/posts/:id', handler: async (request, response) => {
-    try{
-      if(await opts.post.delete(request.params.id)) {
-        return response.code(200).header('Content-Type', 'application/json; charset=utf-8').send({response: "Post " + request.params.id + " deleted"})
-      } else { return response.code(400).header('Content-Type', 'application/json; charset=utf-8').send({error: "Nothing to delete"}) }
-    } catch(error) {
-      if(error) { throw new Error(error); }
+  return {
+    getPosts: {
+      listAllPosts: async ({}, response) => {
+        const allPosts: ResponseGetPost[] = await post.getAll()
+        return response.code(200).header('Content-Type', 'application/json; charset=utf-8').send<ResponseGetPost[]>(allPosts)
+      },
+      createOnePost: async (request:FastifyRequest<IncomingMessage, DefaultQuery, DefaultParams, DefaultHeaders, DefaultBody>, response) => {
+        try {
+          const requestBody: RequestBodyPost = {post: request.body.post || "", likes: request.body.likes || 0, comment: request.body.comment || ""};
+          if(isRight(RequestBodyValuesTypePost.decode(request.body)) && await post.createOne(requestBody)) {
+            return response.code(201).header('Content-Type', 'application/json; charset=utf-8').send<Response>({response :"Post created"})
+          } else { return response.code(400).header('Content-Type', 'application/json; charset=utf-8').send<ErrorType.Error>({error: "Invalid type or parameter send in body"}) }
+        } catch(error) {
+          if(error) { throw new Error(error); }
+        }
+      }
+    },
+    updatePost: {
+      updateOnePost: async (request, response) => {
+        try {
+          // failure handler
+          const onLeft = (errors: t.Errors): string => `${errors.length} error(s) found`
+          // success handler
+          const onRight = (s: string) => s
+
+          await Promise.all(Object.keys(request.body).map(async key => {
+            const keyDecoded = pipe(requestBody.decode(key), fold(onLeft,  onRight))
+            if(isRight(requestBody.decode(key)) && isRight(RequestBodyValuesTypePut.decode(request.body)) && await post.updateOne(Number(request.params.id), request.body, keyDecoded)){
+              return response.code(200).header('Content-Type', 'application/json; charset=utf-8').send<Response>({response: "Post " + request.params.id + " updated"})
+            } else { return response.code(400).header('Content-Type', 'application/json; charset=utf-8').send<ErrorType.Error>({error: "Invalid type or parameter send in body"}) }
+          }))
+        } catch(error) {
+          if(error) { throw new Error(error); }
+        }
+      },
+      deleteOnePost: async (request, response) => {
+        try{
+          if(await post.delete(Number(request.params.id))) {
+            return response.code(200).header('Content-Type', 'application/json; charset=utf-8').send<Response>({response: "Post " + request.params.id + " deleted"})
+          } else { return response.code(400).header('Content-Type', 'application/json; charset=utf-8').send<ErrorType.Error>({error: "Nothing to delete"}) }
+        } catch(error) {
+          if(error) { throw new Error(error); }
+        }
+      }
     }
-  }});
-
-  server.route({method: 'POST', url: '/posts', handler: async (request, response) => {
-    try {
-      if(isRight(RequestBodyValuesTypePost.decode(request.body)) && await opts.post.createOne(request.body)) {
-        return response.code(201).header('Content-Type', 'application/json; charset=utf-8').send({response :"Post created"})
-      } else { return response.code(400).header('Content-Type', 'application/json; charset=utf-8').send({error: "Invalid type or parameter send in body"}) }
-    } catch(error) {
-      if(error) { throw new Error(error); }
-    }
-  }});
-
-  server.route({method: 'PUT', url: '/posts/:id', handler: async (request, response) => {
-    try {
-      // failure handler
-      const onLeft = (errors: t.Errors): string => `${errors.length} error(s) found`
-      // success handler
-      const onRight = (s: string) => s
-
-      await Promise.all(Object.keys(request.body).map(async key => {
-        const keyDecoded = pipe(requestBody.decode(key), fold(onLeft,  onRight))
-        if(isRight(requestBody.decode(key)) && isRight(RequestBodyValuesTypePut.decode(request.body)) && await opts.post.updateOne(request.params.id, request.body, keyDecoded)){
-          return response.code(200).header('Content-Type', 'application/json; charset=utf-8').send({response: "Post " + request.params.id + " updated"})
-        } else { return response.code(400).header('Content-Type', 'application/json; charset=utf-8').send({error: "Invalid type or parameter send in body"}) }
-      }))
-    } catch(error) {
-      if(error) { throw new Error(error); }
-    }
-  }});
-
-  next();
+  }
 };

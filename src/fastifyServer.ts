@@ -8,6 +8,8 @@ import {loadConfigAsync} from './config/configKnex'
 import {PostRoutes} from './controllers/PostRoutesController'
 import {PostRepository} from './persistances/PostRepository'
 
+import {registerFastify} from './generated/contracts/registerFastify'
+
 async function main(): Promise<{}>{
 
   const config = await loadConfigAsync('.env')
@@ -18,7 +20,7 @@ async function main(): Promise<{}>{
 
   const postRepository = new PostRepository(knex);
 
-  server.register(PostRoutes, {post: postRepository})
+  registerFastify(server, PostRoutes(postRepository));
 
   server.register(require('fastify-cors'), {
     origin: (origin:any, cb:any) => {

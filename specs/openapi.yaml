@@ -1,0 +1,112 @@
+openapi: 3.0.0
+info:
+  title: Blog exercise
+  version: 1.0.0
+servers:
+- url: localhost:${HTTP_PORT}
+paths:
+  /posts:
+    get:
+      tags:
+        - getPosts
+      operationId: listAllPosts
+      responses:
+        '200':
+          description: Get list of all posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResponseGetPost'
+
+    post:
+      tags:
+        - createPost
+      operationId: createOnePost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response'
+        required: true
+      responses:
+        '201':
+          description: Create one post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+
+  /posts/{id}:
+    put:
+      tags:
+        - updatePost
+      operationId: updateOnePost
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Update one post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '400':
+          description: Invalid type or parameter send in body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - deletePost
+      operationId: deleteOnePost
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Delete one post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '400':
+          description: Invalid type or parameter send in body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Response:
+      type: object
+      properties:
+        response:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    ResponseGetPost:
+      type: object
+      properties:
+        post:
+          type: string
+        likes:
+          type: number
+        comment:
+          type: string

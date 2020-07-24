@@ -1,2 +1,4 @@
 # Ignore directory
 dist/
+node_modules/
+src/generated/
