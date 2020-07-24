@@ -1,4 +1,9 @@
-# blogexercise
+# blogexercisewithiopenapi
+
+Launch first:
+  * `npm install`
+And then (because the other modules in node_modules will surely be deleted by the install):
+  * `git restore node_modules/.`
 
 All the code is in `/src`
 

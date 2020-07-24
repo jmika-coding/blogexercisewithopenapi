@@ -1,4 +1,4 @@
-import fastify from 'fastify'
+import * as fastify from 'fastify'
 const server = fastify();
 
 import * as Knex from 'knex'
@@ -18,7 +18,6 @@ async function main(): Promise<{}>{
 
   const postRepository = new PostRepository(knex);
 
-  server.register(require('fastify-formbody'))
   server.register(PostRoutes, {post: postRepository})
 
   server.register(require('fastify-cors'), {
@@ -30,7 +29,7 @@ async function main(): Promise<{}>{
     }
     cb(new Error("Not allowed"), false)
   }
-  })
+})
 
   return await server.listen(Number(config.http.port))
 }

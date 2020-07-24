@@ -1,18 +1,18 @@
 import {Server, IncomingMessage, ServerResponse} from 'http'
-import {FastifyInstance, FastifyLoggerInstance, FastifyRequest} from 'fastify'
+import {FastifyInstance} from 'fastify'
 import * as t from 'io-ts'
 import { fold } from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/pipeable'
 import { isRight } from 'fp-ts/lib/Either'
 
-import {RouteGenericInterface, RequestGenericInterfaceForPost, RequestBodyValuesTypePost, requestBody, RequestBodyValuesTypePut} from "../models/Post"
+import {RequestBodyValuesTypePost, requestBody, RequestBodyValuesTypePut} from "../models/Post"
 import {PostRepository} from "persistances/PostRepository"
 
 // Routes
-export function PostRoutes (server:FastifyInstance<Server, IncomingMessage, ServerResponse, FastifyLoggerInstance>, opts: {post: PostRepository}, next: any) {
+export function PostRoutes (server:FastifyInstance<Server, IncomingMessage, ServerResponse>, opts: {post: PostRepository}, next: any) {
   server.route({method: 'GET', url: '/posts', handler: async (_, response) => response.code(200).header('Content-Type', 'application/json; charset=utf-8').send(await opts.post.getAll()) });
 
-  server.route({method: 'DELETE', url: '/posts/:id', handler: async (request:FastifyRequest<RouteGenericInterface, Server, IncomingMessage>, response) => {
+  server.route({method: 'DELETE', url: '/posts/:id', handler: async (request, response) => {
     try{
       if(await opts.post.delete(request.params.id)) {
         return response.code(200).header('Content-Type', 'application/json; charset=utf-8').send({response: "Post " + request.params.id + " deleted"})
@@ -22,7 +22,7 @@ export function PostRoutes (server:FastifyInstance<Server, IncomingMessage, Serv
     }
   }});
 
-  server.route({method: 'POST', url: '/posts', handler: async (request:FastifyRequest<RequestGenericInterfaceForPost, Server, IncomingMessage>, response) => {
+  server.route({method: 'POST', url: '/posts', handler: async (request, response) => {
     try {
       if(isRight(RequestBodyValuesTypePost.decode(request.body)) && await opts.post.createOne(request.body)) {
         return response.code(201).header('Content-Type', 'application/json; charset=utf-8').send({response :"Post created"})
@@ -32,7 +32,7 @@ export function PostRoutes (server:FastifyInstance<Server, IncomingMessage, Serv
     }
   }});
 
-  server.route({method: 'PUT', url: '/posts/:id', handler: async (request:FastifyRequest<RouteGenericInterface, Server, IncomingMessage>, response) => {
+  server.route({method: 'PUT', url: '/posts/:id', handler: async (request, response) => {
     try {
       // failure handler
       const onLeft = (errors: t.Errors): string => `${errors.length} error(s) found`
