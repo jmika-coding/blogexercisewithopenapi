@@ -2,14 +2,9 @@ import * as t from 'io-ts'
 
 // Interfaces for request of post and put and delete routes
 
-export const Params = t.type({ id: t.number })
-export type Params = t.TypeOf<typeof Params>
-
-export interface RequestBodyDefault {
+export interface RequestBodyDefault { // use in PostRepository
   [key: string]: t.TypeOf<typeof t.string> | t.TypeOf<typeof t.number>
 }
-
-export const isRequestBody = (s: unknown): s is string => s === "post" || s === "likes" || s === "comment";
 
 export interface RequestBodyPost { post: t.TypeOf<typeof t.string>; likes: t.TypeOf<typeof t.number>; comment: t.TypeOf<typeof t.string> }
 
@@ -22,6 +17,8 @@ export type RequestBodyValuesTypePost = t.TypeOf<typeof RequestBodyValuesTypePos
 export const RequestBodyValuesTypePut = t.partial({post: t.string, likes: t.number, comment: t.string})
 export type RequestBodyValuesTypePut = t.TypeOf<typeof RequestBodyValuesTypePut>
 
+const isRequestBody = (s: unknown): s is string => s === "post" || s === "likes" || s === "comment";
+
 // Type<A, O, I>
 export const requestBody = new t.Type<string, string, unknown>(
   "string",
@@ -29,15 +26,3 @@ export const requestBody = new t.Type<string, string, unknown>(
   (input, context) => isRequestBody(input) ? t.success(input) : t.failure(input, context),
   t.identity,
 );
-
-export interface RequestGenericInterface {
-  Params: t.TypeOf<typeof Params>;
-  Body: RequestBodyDefault;
-}
-
-export interface RequestGenericInterfaceForPost {
-  Params: t.TypeOf<typeof Params>;
-  Body: RequestBodyPost;
-}
-
-export interface RouteGenericInterface extends RequestGenericInterface{};
