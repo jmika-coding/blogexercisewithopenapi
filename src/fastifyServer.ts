@@ -10,9 +10,12 @@ import {PostRepository} from './persistances/PostRepository'
 
 import {registerFastify} from './generated/contracts/registerFastify'
 
+import * as dotenv from 'dotenv'
+
 async function main(): Promise<{}>{
 
-  const config = await loadConfigAsync('.env')
+  dotenv.config() // use in loadConfigAsync, for load .env in process.env
+  const config = await loadConfigAsync()
   const knex = Knex({
     client: String(config.client.client),
     connection: config.clientParameters
