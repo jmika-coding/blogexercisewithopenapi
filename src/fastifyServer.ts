@@ -1,8 +1,12 @@
 import * as fastify from 'fastify'
+import * as pino from 'pino'
 const server = fastify({
   logger: {
     level: 'info',
-    file: 'logs.txt' // Will use pino.destination(), name of log will be logs.txt
+    file: 'logs.txt', // Will use pino.destination(), name of log will be logs.txt
+    timestamp: pino.stdTimeFunctions.isoTime // ISO 8601-formatted time in UTC
+    // Caution: attempting to format time in-process will significantly impact logging performance.
+    // I don't know if this is the case when specify date format
   }
 });
 
