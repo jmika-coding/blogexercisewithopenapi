@@ -3,7 +3,7 @@ import {FastifyRequest, DefaultQuery, DefaultParams, DefaultHeaders, DefaultBody
 import * as t from 'io-ts'
 import { fold } from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/pipeable'
-import { isRight } from 'fp-ts/lib/Either'
+import { isLeft, isRight } from 'fp-ts/lib/Either'
 
 import {RequestBodyValuesTypePost, requestBody, RequestBodyValuesTypePut, RequestBodyPost} from "../models/Post"
 import {PostRepository} from "persistances/PostRepository"
@@ -43,12 +43,16 @@ export function PostRoutes (post: PostRepository): Handlers {
 
           await Promise.all(Object.keys(request.body).map(async key => {
             const keyDecoded = pipe(requestBody.decode(key), fold(onLeft,  onRight))
-            if(isRight(requestBody.decode(key)) && isRight(RequestBodyValuesTypePut.decode(request.body)) && await post.updateOne(Number(request.params.id), request.body, keyDecoded)){
-              return response.code(200).header('Content-Type', 'application/json; charset=utf-8').send<Response>({response: "Post " + request.params.id + " updated"})
-            } else { return response.code(400).header('Content-Type', 'application/json; charset=utf-8').send<ErrorType.Error>({error: "Invalid type or parameter send in body"}) }
+            if(isLeft(requestBody.decode(key)) || isLeft(RequestBodyValuesTypePut.decode(request.body)) || !await post.updateOne(Number(request.params.id), request.body, keyDecoded)){
+              throw new Error("Invalid type or parameter send in body")
+            }
           }))
+          return response.code(200).header('Content-Type', 'application/json; charset=utf-8').send<Response>({response: "Post " + request.params.id + " updated"})
         } catch(error) {
-          if(error) { throw new Error(error); }
+          if(error) {
+            if(error.message === "Invalid type or parameter send in body") { return response.code(400).header('Content-Type', 'application/json; charset=utf-8').send<ErrorType.Error>({error: error.message}); }
+            else { throw new Error(error); }
+          }
         }
       },
       deleteOnePost: async (request, response) => {

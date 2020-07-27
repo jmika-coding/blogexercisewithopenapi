@@ -6,7 +6,7 @@ import {ResponseGetPost} from '../generated/types/ResponseGetPost'
 export class PostRepository {
   constructor(private knex: knex) {}
 
-  getAll = (): Promise<Array<ResponseGetPost>> => this.knex.select("post", "likes", "comment").from('blog').then((results): ResponseGetPost[] => results.map((r) => ({post: r.post, likes: r.likes, comment: r.comment})));
+  getAll = (): Promise<Array<ResponseGetPost>> => this.knex.select().from('blog')
 
   delete = (postIdToDelete: number) => this.knex('blog').where('id', postIdToDelete).del()
 

@@ -1,5 +1,10 @@
 import * as fastify from 'fastify'
-const server = fastify();
+const server = fastify({
+  logger: {
+    level: 'info',
+    file: 'logs.txt' // Will use pino.destination(), name of log will be logs.txt
+  }
+});
 
 import * as Knex from 'knex'
 
@@ -21,6 +26,7 @@ async function main(): Promise<{}>{
     connection: config.clientParameters
   })
 
+  server.log.info("Starting server")
   const postRepository = new PostRepository(knex);
 
   registerFastify(server, PostRoutes(postRepository));
