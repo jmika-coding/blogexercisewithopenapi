@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "scripts": {
     "build": "openapi-generator && tsc -p tsconfig.json",
-    "start": "node dist/fastifyServer.js"
+    "start": "node dist/fastifyServer.js",
+    "start-seeds": "node dist/fastifyServer.js seed"
   },
   "dependencies": {
     "dotenv": "8.2.0",
