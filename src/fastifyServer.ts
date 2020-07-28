@@ -32,7 +32,7 @@ async function main(): Promise<{}>{
   const knex = Knex({
     client: String(config.client.client),
     connection: config.clientParameters,
-    migrations: { directory: "./src/migrations" },
+    migrations: { directory: "./dist/migrations" },
     seeds: { directory: "./test/seeds" }
   })
 
