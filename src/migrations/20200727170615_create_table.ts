@@ -1,7 +1,7 @@
 import * as Knex from "knex"
 
-exports.up = function (knex: Knex) {
-  return knex.schema.raw(`CREATE TABLE blog (
+exports.up = async function (knex: Knex): Promise<any> {
+  await knex.schema.raw(`CREATE TABLE blog (
       id INT AUTO_INCREMENT PRIMARY KEY,
       post TEXT NOT NULL,
       likes INT,
@@ -10,6 +10,6 @@ exports.up = function (knex: Knex) {
   )
 }
 
-exports.down = function (knex: Knex){
-  return knex.schema.raw("DROP TABLE IF EXISTS blog;");
+exports.down = async function (knex: Knex): Promise<any> {
+  await knex.schema.raw("DROP TABLE IF EXISTS blog;");
 }
