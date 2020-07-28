@@ -5,7 +5,8 @@
     "build": "prettier --write './**/*.{js,ts}' && openapi-generator && tsc -p tsconfig.json",
     "start": "node dist/fastifyServer.js",
     "start-seeds": "node dist/fastifyServer.js seed",
-    "start-save-logs": "node dist/fastifyServer.js logs"
+    "start-save-logs": "node dist/fastifyServer.js logs",
+    "start:watch": "nodemon --watch src --ignore src/generated -e ts --exec 'npm run build && npm run start'"
   },
   "prettier": {
     "parser": "typescript",
@@ -27,6 +28,7 @@
     "typescript": "3.8.3",
     "pino-pretty": "2.6.1",
     "prettier": "2.0.3",
+    "nodemon": "2.0.4",
     "@hermes/openapi-generator": "git+ssh://git@git.hermes.com/io/openapi-generator.git#e423371bb6824874035900d4c3dbff31be2c8171"
   }
 }
