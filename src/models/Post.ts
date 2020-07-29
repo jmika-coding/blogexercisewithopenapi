@@ -8,6 +8,7 @@ export interface RequestBodyDefault {
 }
 
 export interface RequestBodyPost {
+  id?: t.TypeOf<typeof t.number>;
   post: t.TypeOf<typeof t.string>;
   likes: t.TypeOf<typeof t.number>;
   comment: t.TypeOf<typeof t.string>;

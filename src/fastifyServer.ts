@@ -36,7 +36,7 @@ async function main(): Promise<{}> {
   const knex = Knex({
     client: String(config.client.client),
     connection: config.clientParameters,
-    migrations: { directory: "./dist/migrations" },
+    migrations: { directory: "./dist/src/migrations" },
     seeds: { directory: "./test/seeds" },
   });
 

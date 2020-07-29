@@ -29,6 +29,7 @@ export function PostRoutes(post: PostRepository): Handlers {
       createOnePost: async (request: FastifyRequest, response) => {
         try {
           const requestBody: RequestBodyPost = {
+            id: request.body.id,
             post: request.body.post || "",
             likes: request.body.likes || 0,
             comment: request.body.comment || "",
