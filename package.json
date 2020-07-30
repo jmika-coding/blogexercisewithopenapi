@@ -7,6 +7,7 @@
     "start-seeds": "node dist/src/fastifyServer.js seed",
     "start-save-logs": "node dist/src/fastifyServer.js logs",
     "start:watch": "nodemon --watch src --watch test --ignore src/generated -e ts --exec 'npm run build && npm run start'",
+    "start:watch:test": "(nodemon --watch src --watch test --ignore src/generated -e ts --exec 'sleep 5 && npm run test') & npm run start:watch",
     "test": "jest --notify dist"
   },
   "prettier": {
