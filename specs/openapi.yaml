@@ -3,12 +3,12 @@ info:
   title: Blog exercise
   version: 1.0.0
 servers:
-- url: localhost:${HTTP_PORT}
+  - url: localhost:${HTTP_PORT}
 paths:
   /posts:
     get:
       tags:
-        - getPosts
+        - posts
       operationId: listAllPosts
       responses:
         '200':
@@ -22,7 +22,7 @@ paths:
 
     post:
       tags:
-        - createPost
+        - posts
       operationId: createOnePost
       requestBody:
         content:
@@ -41,7 +41,7 @@ paths:
   /posts/{id}:
     put:
       tags:
-        - updatePost
+        - posts
       operationId: updateOnePost
       parameters:
         - name: id
@@ -65,7 +65,7 @@ paths:
 
     delete:
       tags:
-        - deletePost
+        - posts
       operationId: deleteOnePost
       parameters:
         - name: id
@@ -87,14 +87,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /comments/{id}:
+  /comments:
     get:
       tags:
-        - getComments
+        - comments
       operationId: listAllCommentsForAPost
       parameters:
-        - name: id
-          in: path
+        - name: postId
+          in: query
           required: true
           schema:
             type: string
@@ -110,11 +110,11 @@ paths:
 
     post:
       tags:
-        - createComment
+        - comments
       operationId: createOneComment
       parameters:
-        - name: id
-          in: path
+        - name: postId
+          in: query
           required: true
           schema:
             type: string
@@ -132,9 +132,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Response'
 
+  /comments/{id}:
+
     put:
       tags:
-        - updateComment
+        - comments
       operationId: updateOneComment
       parameters:
         - name: id
@@ -164,7 +166,7 @@ paths:
 
     delete:
       tags:
-        - deleteComment
+        - comments
       operationId: deleteOneComment
       parameters:
         - name: id
