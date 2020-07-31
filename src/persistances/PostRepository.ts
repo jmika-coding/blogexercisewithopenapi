@@ -13,9 +13,9 @@ export class PostRepository {
   createOne = (requestBody: RequestBodyPost) =>
     this.knex("blog").insert({
       id: requestBody.id,
+      title: requestBody.title,
       post: requestBody.post,
       likes: requestBody.likes,
-      comment: requestBody.comment,
     });
 
   updateOne = (requestParamsId: number, requestBody: RequestBodyDefault, keyDecoded: string) =>

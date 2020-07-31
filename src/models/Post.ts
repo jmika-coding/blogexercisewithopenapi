@@ -9,29 +9,29 @@ export interface RequestBodyDefault {
 
 export interface RequestBodyPost {
   id?: t.TypeOf<typeof t.number>;
+  title: t.TypeOf<typeof t.string>;
   post: t.TypeOf<typeof t.string>;
   likes: t.TypeOf<typeof t.number>;
-  comment: t.TypeOf<typeof t.string>;
 }
 
 // With t.type all fields are required, we use it for POST
 export const RequestBodyValuesTypePost = t.type({
+  title: t.string,
   post: t.string,
   likes: t.number,
-  comment: t.string,
 });
 export type RequestBodyValuesTypePost = t.TypeOf<typeof RequestBodyValuesTypePost>;
 
 // With t.partial all fields are optional, we use it for put
 // We can combine required and optional with t.intersection
 export const RequestBodyValuesTypePut = t.partial({
+  title: t.string,
   post: t.string,
   likes: t.number,
-  comment: t.string,
 });
 export type RequestBodyValuesTypePut = t.TypeOf<typeof RequestBodyValuesTypePut>;
 
-const isRequestBody = (s: unknown): s is string => s === "post" || s === "likes" || s === "comment";
+const isRequestBody = (s: unknown): s is string => s === "title" || s === "post" || s === "likes";
 
 // Type<A, O, I>
 export const requestBody = new t.Type<string, string, unknown>(

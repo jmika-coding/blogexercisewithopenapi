@@ -28,7 +28,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Response'
+              $ref: '#/components/schemas/CreatePostRequest'
         required: true
       responses:
         '201':
@@ -87,6 +87,105 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /comments/{id}:
+    get:
+      tags:
+        - getComments
+      operationId: listAllCommentsForAPost
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Get list of all comments for a post
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResponseGetComment'
+
+    post:
+      tags:
+        - createComment
+      operationId: createOneComment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+        required: true
+      responses:
+        '201':
+          description: Create one comment for a post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+
+    put:
+      tags:
+        - updateComment
+      operationId: updateOneComment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommentRequest'
+        required: true
+      responses:
+        '200':
+          description: Update one comment for a post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '400':
+          description: Invalid type or parameter send in body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - deleteComment
+      operationId: deleteOneComment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Delete one comment for a post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '400':
+          description: Invalid type or parameter send in body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     Response:
@@ -101,12 +200,44 @@ components:
         error:
           type: string
 
-    ResponseGetPost:
+    CreatePostRequest:
       type: object
       properties:
+        id:
+          type: string
+        title:
+          type: string
         post:
           type: string
         likes:
           type: number
+
+    ResponseGetPost:
+      type: object
+      properties:
+        title:
+          type: string
+        post:
+          type: string
+        likes:
+          type: number
+
+    CreateCommentRequest:
+      type: object
+      properties:
+        id:
+          type: number
+        comment:
+          type: string
+
+    UpdateCommentRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+
+    ResponseGetComment:
+      type: object
+      properties:
         comment:
           type: string

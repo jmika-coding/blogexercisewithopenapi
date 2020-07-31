@@ -8,7 +8,7 @@ const client = got.extend({
 
 test("Should add a post", async () => {
   const response = await client.post("posts", {
-    json: { id: 1000, post: "A post", likes: 10, comment: "A comment" },
+    json: { id: 1000, title: "A title", post: "A post", likes: 10 },
     responseType: "json",
   });
   expect(response.statusCode).toBe(201);

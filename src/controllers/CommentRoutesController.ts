@@ -1,42 +1,34 @@
 import { FastifyRequest } from "fastify";
-import * as t from "io-ts";
-import { fold } from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/pipeable";
 import { isLeft, isRight } from "fp-ts/lib/Either";
 
-import { PostRepository } from "persistances/PostRepository";
+import { CommentRepository } from "persistances/CommentRepository";
 
-import getPostsContract from "../generated/contracts/getPostsContract";
-import updatePostContract from "../generated/contracts/updatePostContract";
-import { ResponseGetPost } from "../generated/types/ResponseGetPost";
+import getCommentsContract from "../generated/contracts/getCommentsContract";
+import { ResponseGetComment } from "../generated/types/ResponseGetComment";
 import { Response } from "../generated/types/Response";
 import * as ErrorType from "../generated/types/Error";
 
-// prettier-ignore
-import { RequestBodyValuesTypePost, requestBody, RequestBodyValuesTypePut,
-  RequestBodyPost } from "../models/Post";
+import { RequestBodyValuesTypeComment, RequestBodyComment } from "../models/Comment";
 
 // Routes
-export function GetPosts(post: PostRepository): getPostsContract {
+export function GetComments(comment: CommentRepository): getCommentsContract {
   return {
-    listAllPosts: async (_, response) => {
-      const allPosts: ResponseGetPost[] = await post.getAll();
+    listAllCommentsForAPost: async (request: FastifyRequest, response) => {
+      const allPosts: ResponseGetComment[] = await comment.getAll(request.params.id);
       return response
         .code(200)
         .header("Content-Type", "application/json; charset=utf-8")
-        .send<ResponseGetPost[]>(allPosts);
+        .send<ResponseGetComment[]>(allPosts);
     },
-    createOnePost: async (request: FastifyRequest, response) => {
+    createOneComment: async (request: FastifyRequest, response) => {
       try {
-        const requestBody: RequestBodyPost = {
+        const requestBody: RequestBodyComment = {
           id: request.body.id,
-          title: request.body.title || "",
-          post: request.body.post || "",
-          likes: request.body.likes || 0,
+          comment: request.body.comment || "",
         };
         if (
-          isRight(RequestBodyValuesTypePost.decode(request.body)) &&
-          (await post.createOne(requestBody))
+          isRight(RequestBodyValuesTypeComment.decode(request.body)) &&
+          (await comment.createOne(requestBody, request.params.id))
         ) {
           return response
             .code(201)
@@ -57,30 +49,14 @@ export function GetPosts(post: PostRepository): getPostsContract {
         }
       }
     },
-  };
-}
-
-export function UpdatePosts(post: PostRepository): updatePostContract {
-  return {
-    updateOnePost: async (request, response) => {
+    updateOneComment: async (request: FastifyRequest, response) => {
       try {
-        // failure handler
-        const onLeft = (errors: t.Errors): string => `${errors.length} error(s) found`;
-        // success handler
-        const onRight = (s: string) => s;
-
-        await Promise.all(
-          Object.keys(request.body).map(async (key) => {
-            const keyDecoded = pipe(requestBody.decode(key), fold(onLeft, onRight));
-            if (
-              isLeft(requestBody.decode(key)) ||
-              isLeft(RequestBodyValuesTypePut.decode(request.body)) ||
-              !(await post.updateOne(Number(request.params.id), request.body, keyDecoded))
-            ) {
-              throw new TypeError("Invalid type or parameter send in body");
-            }
-          })
-        );
+        if (
+          isLeft(RequestBodyValuesTypeComment.decode(request.body)) ||
+          !(await comment.updateOne(Number(request.params.id), request.body))
+        ) {
+          throw new TypeError("Invalid type or parameter send in body");
+        }
         return response
           .code(200)
           .header("Content-Type", "application/json; charset=utf-8")
@@ -101,9 +77,9 @@ export function UpdatePosts(post: PostRepository): updatePostContract {
         }
       }
     },
-    deleteOnePost: async (request, response) => {
+    deleteOneComment: async (request, response) => {
       try {
-        if (await post.delete(Number(request.params.id))) {
+        if (await comment.delete(Number(request.params.id))) {
           return response
             .code(200)
             .header("Content-Type", "application/json; charset=utf-8")
