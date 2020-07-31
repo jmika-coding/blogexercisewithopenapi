@@ -5,7 +5,7 @@ import * as Knex from "knex";
 
 import { loadConfigAsync } from "./config/configKnex";
 
-import { /*PostRoutes,*/ GetPosts, UpdatePosts } from "./controllers/PostRoutesController";
+import { GetPosts } from "./controllers/PostRoutesController";
 import { GetComments } from "./controllers/CommentRoutesController";
 import { PostRepository } from "./persistances/PostRepository";
 import { CommentRepository } from "./persistances/CommentRepository";
@@ -64,9 +64,8 @@ async function main(): Promise<{}> {
   const commentRepository = new CommentRepository(knex);
 
   registerFastify(server, {
-    getPosts: GetPosts(postRepository),
-    updatePost: UpdatePosts(postRepository),
-    getComments: GetComments(commentRepository),
+    posts: GetPosts(postRepository),
+    comments: GetComments(commentRepository),
   });
 
   server.register(require("fastify-cors"), {

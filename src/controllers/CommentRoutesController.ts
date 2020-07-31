@@ -3,7 +3,7 @@ import { isLeft, isRight } from "fp-ts/lib/Either";
 
 import { CommentRepository } from "persistances/CommentRepository";
 
-import getCommentsContract from "../generated/contracts/getCommentsContract";
+import commentsContract from "../generated/contracts/commentsContract";
 import { ResponseGetComment } from "../generated/types/ResponseGetComment";
 import { Response } from "../generated/types/Response";
 import * as ErrorType from "../generated/types/Error";
@@ -11,10 +11,10 @@ import * as ErrorType from "../generated/types/Error";
 import { RequestBodyValuesTypeComment, RequestBodyComment } from "../models/Comment";
 
 // Routes
-export function GetComments(comment: CommentRepository): getCommentsContract {
+export function GetComments(comment: CommentRepository): commentsContract {
   return {
     listAllCommentsForAPost: async (request: FastifyRequest, response) => {
-      const allPosts: ResponseGetComment[] = await comment.getAll(request.params.id);
+      const allPosts: ResponseGetComment[] = await comment.getAll(request.query.postId);
       return response
         .code(200)
         .header("Content-Type", "application/json; charset=utf-8")
@@ -28,7 +28,7 @@ export function GetComments(comment: CommentRepository): getCommentsContract {
         };
         if (
           isRight(RequestBodyValuesTypeComment.decode(request.body)) &&
-          (await comment.createOne(requestBody, request.params.id))
+          (await comment.createOne(requestBody, request.query.postId))
         ) {
           return response
             .code(201)

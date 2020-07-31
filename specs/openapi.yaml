@@ -133,7 +133,6 @@ paths:
                 $ref: '#/components/schemas/Response'
 
   /comments/{id}:
-
     put:
       tags:
         - comments

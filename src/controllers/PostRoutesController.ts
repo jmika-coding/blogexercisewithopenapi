@@ -6,8 +6,7 @@ import { isLeft, isRight } from "fp-ts/lib/Either";
 
 import { PostRepository } from "persistances/PostRepository";
 
-import getPostsContract from "../generated/contracts/getPostsContract";
-import updatePostContract from "../generated/contracts/updatePostContract";
+import postsContract from "../generated/contracts/postsContract";
 import { ResponseGetPost } from "../generated/types/ResponseGetPost";
 import { Response } from "../generated/types/Response";
 import * as ErrorType from "../generated/types/Error";
@@ -17,7 +16,7 @@ import { RequestBodyValuesTypePost, requestBody, RequestBodyValuesTypePut,
   RequestBodyPost } from "../models/Post";
 
 // Routes
-export function GetPosts(post: PostRepository): getPostsContract {
+export function GetPosts(post: PostRepository): postsContract {
   return {
     listAllPosts: async (_, response) => {
       const allPosts: ResponseGetPost[] = await post.getAll();
@@ -57,11 +56,6 @@ export function GetPosts(post: PostRepository): getPostsContract {
         }
       }
     },
-  };
-}
-
-export function UpdatePosts(post: PostRepository): updatePostContract {
-  return {
     updateOnePost: async (request, response) => {
       try {
         // failure handler

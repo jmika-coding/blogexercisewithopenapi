@@ -13,7 +13,7 @@ test("Should add a comment for a post", async () => {
     responseType: "json",
   });
 
-  const response = await client.post("comments/1001", {
+  const response = await client.post("comments?postId=1001", {
     json: { id: 1002, comment: "A comment" },
     responseType: "json",
   });
@@ -29,7 +29,7 @@ test("Should update a comment for a post", async () => {
 });
 
 test("Should get comments for a post", async () => {
-  const response = await client.get("comments/1001", { throwHttpErrors: false });
+  const response = await client.get("comments?postId=1001", { throwHttpErrors: false });
   expect(response.statusCode).toBe(200);
 });
 
