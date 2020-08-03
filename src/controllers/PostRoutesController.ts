@@ -16,13 +16,14 @@ import { RequestBodyValuesTypePost, requestBody, RequestBodyValuesTypePut,
   RequestBodyPost } from "../models/Post";
 
 // Routes
-export function GetPosts(post: PostRepository): postsContract {
+// Extract functions
+export function GetPosts(postRepository: PostRepository): postsContract {
   return {
     listAllPosts: async (_, response) => {
-      const allPosts: ResponseGetPost[] = await post.getAll();
+      const allPosts: ResponseGetPost[] = await postRepository.getAll();
       return response
         .code(200)
-        .header("Content-Type", "application/json; charset=utf-8")
+        .header("Content-Type", "application/json; charset=utf-8") // not necessary
         .send<ResponseGetPost[]>(allPosts);
     },
     createOnePost: async (request: FastifyRequest, response) => {
@@ -34,8 +35,9 @@ export function GetPosts(post: PostRepository): postsContract {
           likes: request.body.likes || 0,
         };
         if (
+          // Decode not needed, logic already in registerFasitfy using schemas
           isRight(RequestBodyValuesTypePost.decode(request.body)) &&
-          (await post.createOne(requestBody))
+          (await postRepository.createOne(requestBody))
         ) {
           return response
             .code(201)
@@ -63,13 +65,16 @@ export function GetPosts(post: PostRepository): postsContract {
         // success handler
         const onRight = (s: string) => s;
 
+
+        // If you have the good request body in the openapi you don't need to validate
         await Promise.all(
           Object.keys(request.body).map(async (key) => {
             const keyDecoded = pipe(requestBody.decode(key), fold(onLeft, onRight));
             if (
               isLeft(requestBody.decode(key)) ||
               isLeft(RequestBodyValuesTypePut.decode(request.body)) ||
-              !(await post.updateOne(Number(request.params.id), request.body, keyDecoded))
+              // to change with good boolean
+              !(await postRepository.updateOne(Number(request.params.id), request.body, keyDecoded))
             ) {
               throw new TypeError("Invalid type or parameter send in body");
             }
@@ -97,7 +102,7 @@ export function GetPosts(post: PostRepository): postsContract {
     },
     deleteOnePost: async (request, response) => {
       try {
-        if (await post.delete(Number(request.params.id))) {
+        if (await postRepository.delete(Number(request.params.id))) {
           return response
             .code(200)
             .header("Content-Type", "application/json; charset=utf-8")
@@ -105,6 +110,7 @@ export function GetPosts(post: PostRepository): postsContract {
               response: "Post " + request.params.id + " deleted",
             });
         } else {
+          // return 404 if not found
           throw new ErrorEvent("Nothing to delete");
         }
       } catch (error) {

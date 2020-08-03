@@ -49,6 +49,7 @@ paths:
           required: true
           schema:
             type: string
+      #Add request body
       responses:
         '200':
           description: Update one post
@@ -189,6 +190,7 @@ paths:
 
 components:
   schemas:
+    # Not necessary, you can use status codes like 201 or 204 depending on your scenario
     Response:
       type: object
       properties:
@@ -203,6 +205,9 @@ components:
 
     CreatePostRequest:
       type: object
+      required:
+        - post
+        - title
       properties:
         id:
           type: string
@@ -210,8 +215,6 @@ components:
           type: string
         post:
           type: string
-        likes:
-          type: number
 
     ResponseGetPost:
       type: object

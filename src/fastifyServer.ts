@@ -14,15 +14,20 @@ import { registerFastify } from "./generated/contracts/registerFastify";
 
 import * as dotenv from "dotenv";
 
-// CONFIG LOG FASTIFY
-let fileLog = "";
-if (process.argv.length === 3 && process.argv[2] === "logs") {
-  fileLog = "logs.txt";
+// TODO move args extraction and CORS setup to other functions/clases
+const args: Args = process.argv.length === 3 ? {
+    logToText: process.argv[2] === "logs",
+    seeds: process.argv[3] === "seed"
+  } : { logToText: false, seeds: false}
+
+type Args = {
+  logToText: boolean
+  seeds: boolean
 }
 const server = fastify({
   logger: {
     level: "info",
-    file: fileLog, // Will use pino.destination(), name of log will be logs.txt if not empty, else output console
+    file: args.logToText ? "logs.txt" : undefined, // Will use pino.destination(), name of log will be logs.txt if not empty, else output console
     timestamp: pino.stdTimeFunctions.isoTime, // ISO 8601-formatted time in UTC
     // Caution: attempting to format time in-process will significantly impact logging performance.
     // I don't know if this is the case when specify date format
@@ -48,8 +53,8 @@ async function main(): Promise<{}> {
     // MIGRATIONS
     await knex.migrate.latest();
     // FILL TABLE IF RUN APP WITH OPTION SEEDS
-    if (process.argv.length === 3 && process.argv[2] === "seed") {
-      knex.seed.run();
+    if (args.seeds) {
+      await knex.seed.run(); // Remove catch and extract
     }
   } catch (error) {
     server.log.error("Unable to migrate DB");
@@ -79,7 +84,7 @@ async function main(): Promise<{}> {
     },
   });
   // HERE WE START THE SERVER, WHEN WE CALL MAIN
-  return await server.listen(Number(config.http.port));
+  return await server.listen(Number(config.http.port), "0.0.0.0");
 }
 
 // CALL MAIN TO START SERVER
