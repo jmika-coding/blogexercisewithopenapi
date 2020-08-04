@@ -55,8 +55,8 @@ paths:
       responses:
         '204':
           description: Update one post
-        '404':
-          description: Invalid type or parameter send in body
+        '400':
+          description: Error while updating a post
 
     delete:
       tags:
@@ -72,7 +72,7 @@ paths:
         '204':
           description: Delete one post
         '404':
-          description: Invalid type or parameter send in body
+          description: Nothing to delete
 
   /comments:
     get:
@@ -137,8 +137,8 @@ paths:
       responses:
         '204':
           description: Update one comment for a post
-        '404':
-          description: Invalid type or parameter send in body
+        '400':
+          description: Error while updating a comment
 
     delete:
       tags:
@@ -154,7 +154,7 @@ paths:
         '204':
           description: Delete one comment for a post
         '404':
-          description: Invalid type or parameter send in body
+          description: Nothing to delete
 
 components:
   schemas:
