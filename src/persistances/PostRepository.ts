@@ -1,40 +1,59 @@
 import * as knex from "knex";
-import { RequestBodyPost, RequestBodyDefault } from "models/Post";
-
-import { ResponseGetPost } from "../generated/types/ResponseGetPost";
+import { RequestBodyPost, RequestBodyPatch } from "models/Post";
 
 interface PostRow {
-  readonly id: number, title: string, post: string, likes: number
+  readonly id: number;
+  readonly title: string;
+  readonly post: string;
+  readonly likes: number;
 }
 
-const postTableName = "blog"
+const postTableName = "post";
 
 const columns = {
   id: "id",
   title: "title",
   post: "post",
-  likes: "likes"
-}
+  likes: "likes",
+};
 
 export class PostRepository {
   constructor(private knex: knex) {}
 
-  // TODO from PostRow to Post
-  getAll = (): Promise<Array<ResponseGetPost>> => this.knex.select<PostRow>().from(postTableName);
+  getAll = (): Promise<Array<RequestBodyPost>> =>
+    this.knex
+      .select<PostRow[]>(columns)
+      .from(postTableName)
+      .then((results): RequestBodyPost[] =>
+        results.map((r) => ({
+          id: r.id,
+          title: r.title,
+          post: r.post,
+          likes: r.likes,
+        }))
+      );
 
-  delete = (postIdToDelete: number) => this.knex("blog").where("id", postIdToDelete).del();
+  delete = (postIdToDelete: number): Promise<boolean> =>
+    this.knex(postTableName)
+      .where("id", postIdToDelete)
+      .del()
+      .then((r) => (r > 0 ? true : false));
 
-  createOne = (requestBody: RequestBodyPost) =>
-    this.knex(postTableName).insert({
-      id: requestBody.id,
-      title: requestBody.title,
-      post: requestBody.post,
-      likes: requestBody.likes,
-    }).then(r => r.length > 1 ? r[0] === 1 : false);
+  createOne = (requestBody: RequestBodyPost): Promise<boolean> =>
+    this.knex(postTableName)
+      .insert({
+        id: requestBody.id,
+        title: requestBody.title,
+        post: requestBody.post,
+        likes: requestBody.likes,
+      })
+      .then((r) => (r.length > 0 ? true : false));
 
-  // Try to make PATCH
-  updateOne = (requestParamsId: number, requestBody: RequestBodyDefault, keyDecoded: string) =>
+  // PATCH query
+  // If value undefined, knex don't update it (don't consider it)
+  updateOne = (requestParamsId: number, requestBody: RequestBodyPatch): Promise<boolean> =>
     this.knex(postTableName)
       .where(columns.id, requestParamsId)
-      .update({title: requestBod});
+      .update({ title: requestBody.title, post: requestBody.post, likes: requestBody.likes })
+      .then((r) => (r > 0 ? true : false));
 }

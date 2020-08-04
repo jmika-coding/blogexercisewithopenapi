@@ -1,24 +1,57 @@
 import * as knex from "knex";
-import { RequestBodyDefault } from "models/Post";
-import { RequestBodyComment, RequestBodyValuesTypeComment } from "models/Comment";
+
+import { RequestBodyComment } from "models/Comment";
 
 import { ResponseGetComment } from "generated/types/ResponseGetComment";
+
+interface CommentRow {
+  readonly id: number;
+  readonly post_id: number;
+  readonly comment: string;
+}
+
+const commentTableName = "comment";
+
+const columns = {
+  id: "id",
+  post_id: "post_id",
+  comment: "comment",
+};
 
 export class CommentRepository {
   constructor(private knex: knex) {}
 
   getAll = (requestParamsId: number): Promise<Array<ResponseGetComment>> =>
-    this.knex.select().from("comment").where("postId", requestParamsId);
+    this.knex
+      .select<CommentRow[]>(columns)
+      .from(commentTableName)
+      .where("post_id", requestParamsId)
+      .then((results): ResponseGetComment[] =>
+        results.map((r) => ({
+          id: r.id,
+          postId: r.post_id,
+          comment: r.comment,
+        }))
+      );
 
-  delete = (commentIdToDelete: number) => this.knex("comment").where("id", commentIdToDelete).del();
+  delete = (commentIdToDelete: number): Promise<boolean> =>
+    this.knex(commentTableName)
+      .where("id", commentIdToDelete)
+      .del()
+      .then((r) => (r > 0 ? true : false));
 
-  createOne = (requestBody: RequestBodyComment, postId: number) =>
-    this.knex("comment").insert({
-      id: requestBody.id,
-      postId: postId,
-      comment: requestBody.comment,
-    });
+  createOne = (requestBody: RequestBodyComment, postId: number): Promise<boolean> =>
+    this.knex(commentTableName)
+      .insert({
+        id: requestBody.id,
+        post_id: postId,
+        comment: requestBody.comment,
+      })
+      .then((r) => (r.length > 0 ? true : false));
 
-  updateOne = (requestParamsId: number, requestBody: RequestBodyComment) =>
-    this.knex("comment").where("id", requestParamsId).update({ comment: requestBody.comment });
+  updateOne = (requestParamsId: number, requestBody: RequestBodyComment): Promise<boolean> =>
+    this.knex(commentTableName)
+      .where("id", requestParamsId)
+      .update({ comment: requestBody.comment })
+      .then((r) => (r > 0 ? true : false));
 }

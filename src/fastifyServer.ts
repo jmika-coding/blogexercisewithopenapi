@@ -12,18 +12,12 @@ import { CommentRepository } from "./persistances/CommentRepository";
 
 import { registerFastify } from "./generated/contracts/registerFastify";
 
+import { args } from "./config/ArgsValue";
+import { corsOptions } from "./config/CorsOptions";
+import { logErrorAndExit } from "./utils/LogErrorAndExit";
+
 import * as dotenv from "dotenv";
 
-// TODO move args extraction and CORS setup to other functions/clases
-const args: Args = process.argv.length === 3 ? {
-    logToText: process.argv[2] === "logs",
-    seeds: process.argv[3] === "seed"
-  } : { logToText: false, seeds: false}
-
-type Args = {
-  logToText: boolean
-  seeds: boolean
-}
 const server = fastify({
   logger: {
     level: "info",
@@ -34,6 +28,8 @@ const server = fastify({
     prettyPrint: true,
   },
 });
+
+const logger: fastify.Logger = server.log;
 
 // MAIN
 async function main(): Promise<{}> {
@@ -48,20 +44,15 @@ async function main(): Promise<{}> {
   });
 
   // MIGRATIONS
-  server.log.info("Applying migrations and/or seeds");
-  try {
-    // MIGRATIONS
-    await knex.migrate.latest();
-    // FILL TABLE IF RUN APP WITH OPTION SEEDS
-    if (args.seeds) {
-      await knex.seed.run(); // Remove catch and extract
-    }
-  } catch (error) {
-    server.log.error("Unable to migrate DB");
-    server.log.error(error);
-    process.exit(1);
+  logger.info("Applying migrations and/or seeds");
+  await knex.migrate
+    .latest()
+    .catch((error) => logErrorAndExit(logger, "Unable to migrate DB", error));
+  // FILL TABLE IF RUN APP WITH OPTION SEEDS
+  if (args.seeds) {
+    await knex.seed.run().catch((error) => logErrorAndExit(logger, "Unable to migrate DB", error));
   }
-  server.log.info("Applied migrations and/or seeds");
+  logger.info("Applied migrations and/or seeds");
 
   // START SERVER
   server.log.info("Starting server");
@@ -73,23 +64,11 @@ async function main(): Promise<{}> {
     comments: GetComments(commentRepository),
   });
 
-  server.register(require("fastify-cors"), {
-    origin: (origin: any, cb: any) => {
-      if (/localhost/.test(origin)) {
-        //  Request from localhost will pass
-        cb(null, true);
-        return;
-      }
-      cb(new Error("Not allowed"), false);
-    },
-  });
+  server.register(require("fastify-cors"), { origin: corsOptions });
+
   // HERE WE START THE SERVER, WHEN WE CALL MAIN
   return await server.listen(Number(config.http.port), "0.0.0.0");
 }
 
 // CALL MAIN TO START SERVER
-main().catch((err) => {
-  server.log.error("Fatal error in fastify server");
-  server.log.error(err);
-  process.exit(1);
-});
+main().catch((error) => logErrorAndExit(logger, "Fatal error in fastify server", error));

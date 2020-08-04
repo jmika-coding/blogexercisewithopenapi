@@ -33,13 +33,11 @@ paths:
       responses:
         '201':
           description: Create one post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
+        '400':
+          description: Error while creating a post
 
   /posts/{id}:
-    put:
+    patch:
       tags:
         - posts
       operationId: updateOnePost
@@ -48,21 +46,17 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-      #Add request body
+            type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePatchRequest'
       responses:
-        '200':
+        '204':
           description: Update one post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
-        '400':
+        '404':
           description: Invalid type or parameter send in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
     delete:
       tags:
@@ -73,20 +67,12 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: number
       responses:
-        '200':
+        '204':
           description: Delete one post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
-        '400':
+        '404':
           description: Invalid type or parameter send in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
   /comments:
     get:
@@ -98,7 +84,7 @@ paths:
           in: query
           required: true
           schema:
-            type: string
+            type: number
       responses:
         '200':
           description: Get list of all comments for a post
@@ -118,7 +104,7 @@ paths:
           in: query
           required: true
           schema:
-            type: string
+            type: number
       requestBody:
         content:
           application/json:
@@ -128,13 +114,11 @@ paths:
       responses:
         '201':
           description: Create one comment for a post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
+        '400':
+          description: Error while creating a comment for a post
 
   /comments/{id}:
-    put:
+    patch:
       tags:
         - comments
       operationId: updateOneComment
@@ -143,7 +127,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: number
       requestBody:
         content:
           application/json:
@@ -151,18 +135,10 @@ paths:
               $ref: '#/components/schemas/UpdateCommentRequest'
         required: true
       responses:
-        '200':
+        '204':
           description: Update one comment for a post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
-        '400':
+        '404':
           description: Invalid type or parameter send in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
     delete:
       tags:
@@ -173,48 +149,42 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: number
       responses:
-        '200':
+        '204':
           description: Delete one comment for a post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
-        '400':
+        '404':
           description: Invalid type or parameter send in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
-    # Not necessary, you can use status codes like 201 or 204 depending on your scenario
-    Response:
-      type: object
-      properties:
-        response:
-          type: string
-
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-
     CreatePostRequest:
       type: object
       required:
         - post
         - title
+        - likes
       properties:
         id:
-          type: string
+          type: number
         title:
           type: string
         post:
           type: string
+        likes:
+          type: number
+
+    CreatePatchRequest:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        post:
+          type: string
+        likes:
+          type: number
 
     ResponseGetPost:
       type: object
@@ -228,6 +198,8 @@ components:
 
     CreateCommentRequest:
       type: object
+      required:
+        - comment
       properties:
         id:
           type: number

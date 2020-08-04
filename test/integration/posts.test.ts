@@ -15,11 +15,11 @@ test("Should add a post", async () => {
 });
 
 test("Should update a post", async () => {
-  const response = await client.put("posts/1000", {
+  const response = await client.patch("posts/1000", {
     json: { post: "An updated post" },
     responseType: "json",
   });
-  expect(response.statusCode).toBe(200);
+  expect(response.statusCode).toBe(204);
 });
 
 test("Should get posts", async () => {
@@ -29,5 +29,26 @@ test("Should get posts", async () => {
 
 test("Should delete a post", async () => {
   const response = await client.delete("posts/1000", { throwHttpErrors: false });
-  expect(response.statusCode).toBe(200);
+  expect(response.statusCode).toBe(204);
+});
+
+// Error test
+test("Should have error when parameters incorrect", async () => {
+  const response = await client.post("posts", {
+    json: { id: 1000, title2: "A title", post: "A post", likes: 10 },
+    responseType: "json",
+    throwHttpErrors: false,
+    retry: 0,
+  });
+  expect(response.statusCode).toBe(400);
+});
+
+test("Should have error when parameters type incorrect", async () => {
+  const response = await client.post("posts", {
+    json: { id: "ok", title: "A title", post: "A post", likes: 10 },
+    responseType: "json",
+    throwHttpErrors: false,
+    retry: 0,
+  });
+  expect(response.statusCode).toBe(400);
 });
