@@ -3,12 +3,12 @@ info:
   title: Blog exercise
   version: 1.0.0
 servers:
-- url: localhost:${HTTP_PORT}
+  - url: localhost:${HTTP_PORT}
 paths:
   /posts:
     get:
       tags:
-        - getPosts
+        - posts
       operationId: listAllPosts
       responses:
         '200':
@@ -22,7 +22,7 @@ paths:
 
     post:
       tags:
-        - createPost
+        - posts
       operationId: createOnePost
       requestBody:
         content:
@@ -33,71 +33,58 @@ paths:
       responses:
         '201':
           description: Create one post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
+        '400':
+          description: Error while creating a post
 
   /posts/{id}:
-    put:
+    patch:
       tags:
-        - updatePost
+        - posts
       operationId: updateOnePost
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: string
+            type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePatchRequest'
       responses:
-        '200':
+        '204':
           description: Update one post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
         '400':
-          description: Invalid type or parameter send in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Error while updating a post
 
     delete:
       tags:
-        - deletePost
+        - posts
       operationId: deleteOnePost
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: string
+            type: number
       responses:
-        '200':
+        '204':
           description: Delete one post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
-        '400':
-          description: Invalid type or parameter send in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+        '404':
+          description: Nothing to delete
 
-  /comments/{id}:
+  /comments:
     get:
       tags:
-        - getComments
+        - comments
       operationId: listAllCommentsForAPost
       parameters:
-        - name: id
-          in: path
+        - name: postId
+          in: query
           required: true
           schema:
-            type: string
+            type: number
       responses:
         '200':
           description: Get list of all comments for a post
@@ -110,14 +97,14 @@ paths:
 
     post:
       tags:
-        - createComment
+        - comments
       operationId: createOneComment
       parameters:
-        - name: id
-          in: path
+        - name: postId
+          in: query
           required: true
           schema:
-            type: string
+            type: number
       requestBody:
         content:
           application/json:
@@ -127,21 +114,20 @@ paths:
       responses:
         '201':
           description: Create one comment for a post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
+        '400':
+          description: Error while creating a comment for a post
 
-    put:
+  /comments/{id}:
+    patch:
       tags:
-        - updateComment
+        - comments
       operationId: updateOneComment
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: string
+            type: number
       requestBody:
         content:
           application/json:
@@ -149,62 +135,50 @@ paths:
               $ref: '#/components/schemas/UpdateCommentRequest'
         required: true
       responses:
-        '200':
+        '204':
           description: Update one comment for a post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
         '400':
-          description: Invalid type or parameter send in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Error while updating a comment
 
     delete:
       tags:
-        - deleteComment
+        - comments
       operationId: deleteOneComment
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: string
+            type: number
       responses:
-        '200':
+        '204':
           description: Delete one comment for a post
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Response'
-        '400':
-          description: Invalid type or parameter send in body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+        '404':
+          description: Nothing to delete
 
 components:
   schemas:
-    Response:
-      type: object
-      properties:
-        response:
-          type: string
-
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-
     CreatePostRequest:
+      type: object
+      required:
+        - post
+        - title
+        - likes
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        post:
+          type: string
+        likes:
+          type: number
+
+    CreatePatchRequest:
       type: object
       properties:
         id:
-          type: string
+          type: number
         title:
           type: string
         post:
@@ -224,6 +198,8 @@ components:
 
     CreateCommentRequest:
       type: object
+      required:
+        - comment
       properties:
         id:
           type: number

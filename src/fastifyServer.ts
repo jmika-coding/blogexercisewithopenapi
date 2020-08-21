@@ -5,30 +5,31 @@ import * as Knex from "knex";
 
 import { loadConfigAsync } from "./config/configKnex";
 
-import { /*PostRoutes,*/ GetPosts, UpdatePosts } from "./controllers/PostRoutesController";
+import { GetPosts } from "./controllers/PostRoutesController";
 import { GetComments } from "./controllers/CommentRoutesController";
 import { PostRepository } from "./persistances/PostRepository";
 import { CommentRepository } from "./persistances/CommentRepository";
 
 import { registerFastify } from "./generated/contracts/registerFastify";
 
+import { args } from "./config/ArgsValue";
+import { corsOptions } from "./config/CorsOptions";
+import { logErrorAndExit } from "./utils/LogErrorAndExit";
+
 import * as dotenv from "dotenv";
 
-// CONFIG LOG FASTIFY
-let fileLog = "";
-if (process.argv.length === 3 && process.argv[2] === "logs") {
-  fileLog = "logs.txt";
-}
 const server = fastify({
   logger: {
     level: "info",
-    file: fileLog, // Will use pino.destination(), name of log will be logs.txt if not empty, else output console
+    file: args.logToText ? "logs.txt" : undefined, // Will use pino.destination(), name of log will be logs.txt if not empty, else output console
     timestamp: pino.stdTimeFunctions.isoTime, // ISO 8601-formatted time in UTC
     // Caution: attempting to format time in-process will significantly impact logging performance.
     // I don't know if this is the case when specify date format
     prettyPrint: true,
   },
 });
+
+const logger: fastify.Logger = server.log;
 
 // MAIN
 async function main(): Promise<{}> {
@@ -43,20 +44,15 @@ async function main(): Promise<{}> {
   });
 
   // MIGRATIONS
-  server.log.info("Applying migrations and/or seeds");
-  try {
-    // MIGRATIONS
-    await knex.migrate.latest();
-    // FILL TABLE IF RUN APP WITH OPTION SEEDS
-    if (process.argv.length === 3 && process.argv[2] === "seed") {
-      knex.seed.run();
-    }
-  } catch (error) {
-    server.log.error("Unable to migrate DB");
-    server.log.error(error);
-    process.exit(1);
+  logger.info("Applying migrations and/or seeds");
+  await knex.migrate
+    .latest()
+    .catch((error) => logErrorAndExit(logger, "Unable to migrate DB", error));
+  // FILL TABLE IF RUN APP WITH OPTION SEEDS
+  if (args.seeds) {
+    await knex.seed.run().catch((error) => logErrorAndExit(logger, "Unable to migrate DB", error));
   }
-  server.log.info("Applied migrations and/or seeds");
+  logger.info("Applied migrations and/or seeds");
 
   // START SERVER
   server.log.info("Starting server");
@@ -64,28 +60,15 @@ async function main(): Promise<{}> {
   const commentRepository = new CommentRepository(knex);
 
   registerFastify(server, {
-    getPosts: GetPosts(postRepository),
-    updatePost: UpdatePosts(postRepository),
-    getComments: GetComments(commentRepository),
+    posts: GetPosts(postRepository),
+    comments: GetComments(commentRepository),
   });
 
-  server.register(require("fastify-cors"), {
-    origin: (origin: any, cb: any) => {
-      if (/localhost/.test(origin)) {
-        //  Request from localhost will pass
-        cb(null, true);
-        return;
-      }
-      cb(new Error("Not allowed"), false);
-    },
-  });
+  server.register(require("fastify-cors"), { origin: corsOptions });
+
   // HERE WE START THE SERVER, WHEN WE CALL MAIN
-  return await server.listen(Number(config.http.port));
+  return await server.listen(Number(config.http.port), "0.0.0.0");
 }
 
 // CALL MAIN TO START SERVER
-main().catch((err) => {
-  server.log.error("Fatal error in fastify server");
-  server.log.error(err);
-  process.exit(1);
-});
+main().catch((error) => logErrorAndExit(logger, "Fatal error in fastify server", error));
